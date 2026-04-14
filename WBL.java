@@ -151,7 +151,13 @@ public class WBL extends JFrame {
 					time+=60;
 					status.setText("工作中...");
 					showtime.setText(Integer.toString(time));
-					timeSub(time);
+					//如果已有线程在运行，先终止它
+						if (Time != null && Time.isAlive()) {
+							die = true;
+						}
+						die = false;
+						Time = new Thread(() -> timeSub(time));
+						Time.start();
 				}
 //				炉门未关闭
 				if (stove_door==true) {
@@ -174,6 +180,9 @@ public class WBL extends JFrame {
 					
 				}
 				if(working==true) {
+						die = true;
+						working = false;
+						time = 0;
 					//中断，关灯并清除剩余时间
 					status.setText("非正常中断！滴一声!!!");
 					text1.setText("暗暗暗");
@@ -207,7 +216,7 @@ public class WBL extends JFrame {
 	 * @param time
 	 */
 	public void timeSub(int time) {
-		while(time>0) {
+		while(time>0 && !die) {
 			 time--;
 			 try {
 				 Thread.sleep(100);
@@ -216,12 +225,13 @@ public class WBL extends JFrame {
 				 e.printStackTrace();
 			 }
 		 }
-		if (time==0) {
+		if (time==0 && !die) {
 			System.out.println("时间到！");
 			//关闭灯，并鸣叫三声
 			text1.setForeground(Color.black);
 			status.setText("烹饪完成，滴滴滴~（三声）");
 			text1.setText("暗暗暗");
+			working = false;
 		}
 	}
 
